@@ -1,7 +1,6 @@
 import { Logger } from "@ddadaal/tsgrpc-server";
 import { NodeSSH } from "node-ssh";
 import { join } from "path";
-import { config } from "src/config/env";
 import { JobInfo } from "src/generated/portal/job";
 import { loggedExec } from "src/plugins/ssh";
 import { SFTPWrapper } from "ssh2";
@@ -24,6 +23,7 @@ export interface JobMetadata {
   command: string;
   comment?: string;
   submitTime: string;
+  workingDirectory: string;
 }
 
 export function generateJobScript(jobInfo: JobInfo) {
@@ -64,29 +64,20 @@ export const JOB_SCRIPT_NAME = "job.sh";
 export const JOB_METADATA_NAME = "metadata.json";
 
 type SubmitJobResult =
-  | { code: "OK", jobId: number, dir: string, metadata: JobMetadata, sftp: SFTPWrapper }
-  | { code: "ALREADY_EXISTS", dir: string }
+  | { code: "OK", jobId: number, metadata: JobMetadata, sftp: SFTPWrapper }
   | { code: "SBATCH_FAILED", message: string };
 
 export async function submitJob(params: SubmitJobParams): Promise<SubmitJobResult> {
 
   const { jobInfo, logger, ssh, env } = params;
 
+  const dir = jobInfo.workingDirectory;
+
   const script = generateJobScript(jobInfo);
 
   const sftp = await ssh.requestSFTP();
 
-  // create a dir named job name
-  const dir = join(config.JOBS_DIR, jobInfo.jobName);
-
-  // mkdir JOBS_DIR
-  await ssh.mkdir(config.JOBS_DIR);
-
-  // Query if job folder exists
-  if (await sftpExists(sftp, dir)) {
-    return { code: "ALREADY_EXISTS", dir };
-  }
-
+  // make sure workingDirectory exists.
   await ssh.mkdir(dir);
 
   const metadata: JobMetadata = {
@@ -116,6 +107,6 @@ export async function submitJob(params: SubmitJobParams): Promise<SubmitJobResul
   // parse stdout output to get the job id
   const jobId = parseSbatchOutput(stdout);
 
-  return { code: "OK", jobId, dir, metadata, sftp };
+  return { code: "OK", jobId, metadata, sftp };
 
 }
