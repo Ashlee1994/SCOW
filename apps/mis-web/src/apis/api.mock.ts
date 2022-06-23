@@ -73,7 +73,7 @@ export const mockApi: MockApi<typeof api> = {
 
   getRunningJobs: async () => ({ results: [runningJob]}),
 
-  getAllPlatformUsers: async () => ({ results: [
+  getTenantUsers: async () => ({ results: [
     {
       createTime: "2020-04-23T23:49:50.000Z",
       email: "test@test.com",

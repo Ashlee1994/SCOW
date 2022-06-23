@@ -3,14 +3,9 @@
 import { fromApi } from "@ddadaal/next-typed-api-routes-runtime/lib/client";
 import { join } from "path";
 import type { GetIconSchema } from "src/pages/api//icon";
-import type { DewhitelistAccountSchema } from "src/pages/api/admin/accountWhitelist/dewhitelistAccount";
-import type { GetWhitelistedAccountsSchema } from "src/pages/api/admin/accountWhitelist/getWhitelistedAccounts";
-import type { WhitelistAccountSchema } from "src/pages/api/admin/accountWhitelist/whitelistAccount";
 import type { ChangeJobPriceSchema } from "src/pages/api/admin/changeJobPrice";
 import type { ChangeStorageQuotaSchema } from "src/pages/api/admin/changeStorage";
-import type { CreateAccountSchema } from "src/pages/api/admin/createAccount";
-import type { GetAccountsSchema } from "src/pages/api/admin/getAccounts";
-import type { GetAllPlatformUsersSchema } from "src/pages/api/admin/getAllPlatformUsersSchema";
+import type { GetTenantUsersSchema } from "src/pages/api/admin/getTenantUsers";
 import type { QueryStorageQuotaSchema } from "src/pages/api/admin/queryStorageQuota";
 import type { AuthCallbackSchema } from "src/pages/api/auth/callback";
 import type { LogoutSchema } from "src/pages/api/auth/logout";
@@ -26,6 +21,11 @@ import type { GetJobInfoSchema } from "src/pages/api/job/jobInfo";
 import type { QueryJobTimeLimitSchema } from "src/pages/api/job/queryJobTimeLimit";
 import type { GetRunningJobsSchema } from "src/pages/api/job/runningJobs";
 import type { ChangePasswordSchema } from "src/pages/api/profile/changePassword";
+import type { DewhitelistAccountSchema } from "src/pages/api/tenant/accountWhitelist/dewhitelistAccount";
+import type { GetWhitelistedAccountsSchema } from "src/pages/api/tenant/accountWhitelist/getWhitelistedAccounts";
+import type { WhitelistAccountSchema } from "src/pages/api/tenant/accountWhitelist/whitelistAccount";
+import type { CreateAccountSchema } from "src/pages/api/tenant/createAccount";
+import type { GetAccountsSchema } from "src/pages/api/tenant/getAccounts";
 import type { AddUserToAccountSchema } from "src/pages/api/users/addToAccount";
 import type { BlockUserInAccountSchema } from "src/pages/api/users/blockInAccount";
 import type { CreateUserSchema } from "src/pages/api/users/create";
@@ -40,14 +40,9 @@ import type { UnsetAdminSchema } from "src/pages/api/users/unsetAdmin";
 
 
 export const api = {
-  dewhitelistAccount: fromApi<DewhitelistAccountSchema>("DELETE", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/accountWhitelist/dewhitelistAccount")),
-  getWhitelistedAccounts: fromApi<GetWhitelistedAccountsSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/accountWhitelist/getWhitelistedAccounts")),
-  whitelistAccount: fromApi<WhitelistAccountSchema>("PUT", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/accountWhitelist/whitelistAccount")),
   changeJobPrice: fromApi<ChangeJobPriceSchema>("PATCH", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/changeJobPrice")),
   changeStorageQuota: fromApi<ChangeStorageQuotaSchema>("PUT", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/changeStorage")),
-  createAccount: fromApi<CreateAccountSchema>("POST", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/createAccount")),
-  getAccounts: fromApi<GetAccountsSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/getAccounts")),
-  getAllPlatformUsers: fromApi<GetAllPlatformUsersSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/getAllPlatformUsersSchema")),
+  getTenantUsers: fromApi<GetTenantUsersSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/getTenantUsers")),
   queryStorageQuota: fromApi<QueryStorageQuotaSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/admin/queryStorageQuota")),
   authCallback: fromApi<AuthCallbackSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/auth/callback")),
   logout: fromApi<LogoutSchema>("DELETE", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/auth/logout")),
@@ -64,6 +59,11 @@ export const api = {
   queryJobTimeLimit: fromApi<QueryJobTimeLimitSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/job/queryJobTimeLimit")),
   getRunningJobs: fromApi<GetRunningJobsSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/job/runningJobs")),
   changePassword: fromApi<ChangePasswordSchema>("PATCH", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/profile/changePassword")),
+  dewhitelistAccount: fromApi<DewhitelistAccountSchema>("DELETE", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/tenant/accountWhitelist/dewhitelistAccount")),
+  getWhitelistedAccounts: fromApi<GetWhitelistedAccountsSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/tenant/accountWhitelist/getWhitelistedAccounts")),
+  whitelistAccount: fromApi<WhitelistAccountSchema>("PUT", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/tenant/accountWhitelist/whitelistAccount")),
+  createAccount: fromApi<CreateAccountSchema>("POST", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/tenant/createAccount")),
+  getAccounts: fromApi<GetAccountsSchema>("GET", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/tenant/getAccounts")),
   addUserToAccount: fromApi<AddUserToAccountSchema>("POST", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/users/addToAccount")),
   blockUserInAccount: fromApi<BlockUserInAccountSchema>("PUT", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/users/blockInAccount")),
   createUser: fromApi<CreateUserSchema>("POST", join(process.env.NEXT_PUBLIC_BASE_PATH || "", "/api/users/create")),
