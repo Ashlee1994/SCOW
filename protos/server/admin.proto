@@ -27,9 +27,18 @@ message QueryStorageQuotaRequest {
 // NOT_FOUND: cluster or userId is not found.
 message QueryStorageQuotaReply { uint64 current_quota = 1; }
 
+message ImportUsersRequest {
+  string data = 1;
+  bool whitelist = 2;
+}
+
+// INVAD_ARGUMENT: the data format is not acceptable
+message ImportUsersReply {}
+
 service AdminService {
   rpc ChangeStorageQuota(ChangeStorageQuotaRequest)
       returns (ChangeStorageQuotaReply);
   rpc QueryStorageQuota(QueryStorageQuotaRequest)
       returns (QueryStorageQuotaReply);
+  rpc ImportUsers(ImportUsersRequest) returns (ImportUsersReply);
 }
