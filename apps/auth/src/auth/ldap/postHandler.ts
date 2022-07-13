@@ -5,10 +5,10 @@ import ldapjs from "ldapjs";
 import { cacheInfo } from "src/auth/cacheInfo";
 import { findUser, useLdap } from "src/auth/ldap/helpers";
 import { serveLoginHtml } from "src/auth/ldap/loginHtml";
-import { config } from "src/config/env";
+import { LdapConfigType } from "src/config/auth";
 import { redirectToWeb } from "src/routes/callback";
 
-export function registerPostHandler(f: FastifyInstance) {
+export function registerPostHandler(f: FastifyInstance, ldapConfig: LdapConfigType) {
 
   f.register(formBody);
 
@@ -33,36 +33,37 @@ export function registerPostHandler(f: FastifyInstance) {
     // 6. redirect to /public/callback
     const logger = req.log.child({ plugin: "ldap" });
 
-    await useLdap(logger)(async (client) => {
+    await useLdap(logger, ldapConfig, { dn: ldapConfig.bindDn, password: ldapConfig.bindPassword })(
+      async (client) => {
 
-      const user = await findUser(logger, client, username);
+        const user = await findUser(logger, ldapConfig, client, username);
 
-      if (!user) {
-        logger.info("Didn't find user with %s=%s", config.LDAP_ATTR_UID, username);
-        await serveLoginHtml(true, callbackUrl, req, res);
-        return;
-      }
+        if (!user) {
+          logger.info("Didn't find user with %s=%s", ldapConfig.attrs.uid, username);
+          await serveLoginHtml(true, callbackUrl, req, res);
+          return;
+        }
 
-      logger.info("Trying binding as %s with credentials", user.dn);
-      const anotherClient = ldapjs.createClient({ url: config.LDAP_URL, log: logger });
+        logger.info("Trying binding as %s with credentials", user.dn);
+        const anotherClient = ldapjs.createClient({ url: ldapConfig.url, log: logger });
 
-      const err = await new Promise<null | ldapjs.Error>((res) => {
-        anotherClient.bind(user.dn, password, (err) => {
-          res(err);
+        const err = await new Promise<null | ldapjs.Error>((res) => {
+          anotherClient.bind(user.dn, password, (err) => {
+            res(err);
+          });
         });
+
+        if (err) {
+          logger.info("Binding as %s failed. Err: %o", user.dn, err);
+          await serveLoginHtml(true, callbackUrl, req, res);
+          return;
+        }
+
+        logger.info("Binding as %s successful. User info %o", user.dn, user);
+
+        const info = await cacheInfo(user.identityId, req);
+
+        await redirectToWeb(callbackUrl, info, res);
       });
-
-      if (err) {
-        logger.info("Binding as %s failed. Err: %o", user.dn, err);
-        await serveLoginHtml(true, callbackUrl, req, res);
-        return;
-      }
-
-      logger.info("Binding as %s successful. User info %o", user.dn, user);
-
-      const info = await cacheInfo(user.identityId, req);
-
-      await redirectToWeb(callbackUrl, info, res);
-    });
   });
 }

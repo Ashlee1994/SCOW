@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { NoSuchObjectError } from "ldapjs";
 import { buildApp } from "src/app";
 import { findUser, useLdap } from "src/auth/ldap/helpers";
-import { config } from "src/config/env";
+import { AuthConfig } from "src/config/auth";
 
 let server: FastifyInstance;
 
@@ -26,55 +26,58 @@ it("creates user and group", async () => {
     password: "12#",
   };
 
-  const userDn = `${config.LDAP_ATTR_UID}=${user.identityId},${config.LDAP_ADD_USER_BASE}`;
-  const groupDn = `${config.LDAP_ATTR_GROUP_USER_ID}=${user.identityId},${config.LDAP_ADD_GROUP_BASE}`;
+  const ldapConfig = AuthConfig.ldap;
 
-  await useLdap(server.log)(async (client) => {
+  const userDn = `${ldapConfig.attrs.uid}=${user.identityId},${ldapConfig.addUserBase}`;
+  const groupDn = `${ldapConfig.attrs.groupUserId}=${user.identityId},${ldapConfig.addGroupBase}`;
 
-    function removeEvenNotExist(dn: string) {
-      return new Promise<void>((res, rej) => {
-        client.del(dn, (err) => {
-          if (err) {
-            if (err instanceof NoSuchObjectError) {
-              console.log("No entity with dn " + userDn);
-            } else {
-              rej(err);
+  await useLdap(server.log, ldapConfig, { dn: ldapConfig.bindDn, password: ldapConfig.bindPassword })(
+    async (client) => {
+
+      function removeEvenNotExist(dn: string) {
+        return new Promise<void>((res, rej) => {
+          client.del(dn, (err) => {
+            if (err) {
+              if (err instanceof NoSuchObjectError) {
+                console.log("No entity with dn " + userDn);
+              } else {
+                rej(err);
+              }
             }
-          }
-          res();
+            res();
+          });
         });
-      });
-    }
+      }
 
-    const removeUser = async () => {
-      await removeEvenNotExist(userDn);
-      await removeEvenNotExist(groupDn);
-    };
+      const removeUser = async () => {
+        await removeEvenNotExist(userDn);
+        await removeEvenNotExist(groupDn);
+      };
 
-    // remove the user if exists
-    await removeUser();
-
-    try {
-
-      const resp = await server.inject({
-        method: "POST",
-        url: "/user",
-        payload: user,
-      });
-
-      expect(resp.statusCode).toBe(204);
-
-      const ldapUser = await findUser(server.log, client, user.identityId);
-      expect(ldapUser).toBeDefined();
-
-      expect(ldapUser).toEqual({
-        dn: userDn,
-        identityId: user.identityId,
-        name: user.name,
-      });
-    } finally {
+      // remove the user if exists
       await removeUser();
-    }
 
-  });
+      try {
+
+        const resp = await server.inject({
+          method: "POST",
+          url: "/user",
+          payload: user,
+        });
+
+        expect(resp.statusCode).toBe(204);
+
+        const ldapUser = await findUser(server.log, ldapConfig, client, user.identityId);
+        expect(ldapUser).toBeDefined();
+
+        expect(ldapUser).toEqual({
+          dn: userDn,
+          identityId: user.identityId,
+          name: user.name,
+        });
+      } finally {
+        await removeUser();
+      }
+
+    });
 });

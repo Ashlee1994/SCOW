@@ -1,0 +1,16 @@
+redis:
+  url: localhost:6379
+type: ldap
+ldap:
+  url: ldap://localhost:389
+  bindDn: cn=Manager,ou=hpc,o=pku
+  bindPassword: admin
+  searchBase: "ou=hpc,o=pku"
+  filter: "(uid=*)"
+  addUserBase: "ou=People,ou=hpc,o=pku"
+  addGroupBase: "ou=Group,ou=hpc,o=pku"
+  attrs:
+    uid: uid
+    groupUserId: cn
+    name: cn
+    mail: mail

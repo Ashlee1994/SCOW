@@ -1,14 +1,15 @@
 import { FastifyLoggerInstance } from "fastify";
 import ldapjs from "ldapjs";
-import { config } from "src/config/env";
+import { LdapConfigType } from "src/config/auth";
 import { promisify } from "util";
 
 export const useLdap = (
   logger: FastifyLoggerInstance,
-  user: { dn: string, password: string } = { dn: config.LDAP_BIND_DN, password: config.LDAP_BIND_PASSWORD },
+  config: LdapConfigType,
+  user: { dn: string, password: string },
 ) => {
   return async <T>(consume: (client: ldapjs.Client) => Promise<T>): Promise<T> => {
-    const client = ldapjs.createClient(({ url: config.LDAP_URL, log: logger }));
+    const client = ldapjs.createClient(({ url: config.url, log: logger }));
 
     await promisify(client.bind.bind(client))(user.dn, user.password);
 
@@ -20,10 +21,11 @@ export const useLdap = (
 
 export const searchOne = async <T>(
   logger: FastifyLoggerInstance,
+  ldapConfig: LdapConfigType,
   client: ldapjs.Client,
   searchBase: string,
   searchOptions: ldapjs.SearchOptions,
-  furtherCheck: (entry: ldapjs.SearchEntry) => T | undefined,
+  furtherCheck: (entry: ldapjs.SearchEntry, ldapConfig: LdapConfigType) => T | undefined,
 ) => {
   return new Promise<(T & { dn: string }) | undefined>((resolve, rej) => {
 
@@ -38,7 +40,7 @@ export const searchOne = async <T>(
         if (found) { return; }
         logger.info("Get an entry. %o", entry);
 
-        const val = furtherCheck(entry);
+        const val = furtherCheck(entry, ldapConfig);
 
         if (!val) { return; }
 
@@ -70,25 +72,27 @@ export const searchOne = async <T>(
   });
 };
 
-export const findUser = async (logger: FastifyLoggerInstance, client: ldapjs.Client, id: string) => {
-  return await searchOne(logger, client, config.LDAP_SEARCH_BASE,
+export const findUser = async (
+  logger: FastifyLoggerInstance, config: LdapConfigType, client: ldapjs.Client, id: string,
+) => {
+  return await searchOne(logger, config, client, config.searchBase,
     {
       scope: "sub",
       filter: new ldapjs.AndFilter({
         filters: [
-          ldapjs.parseFilter(config.LDAP_FILTER),
+          ldapjs.parseFilter(config.filter),
           new ldapjs.EqualityFilter({
-            attribute: config.LDAP_ATTR_UID,
+            attribute: config.attrs.uid,
             value: id,
           })],
       }),
-    }, extractUserInfoFromEntry,
+    },  extractUserInfoFromEntry,
   );
 };
 
-export const extractUserInfoFromEntry = (entry: ldapjs.SearchEntry) => {
-  const identityId = takeOne(entry.attributes.find((x) => x.json.type === config.LDAP_ATTR_UID)?.vals);
-  const name = takeOne(entry.attributes.find((x) => x.json.type === config.LDAP_ATTR_NAME)?.vals);
+export const extractUserInfoFromEntry = (entry: ldapjs.SearchEntry, config: LdapConfigType) => {
+  const identityId = takeOne(entry.attributes.find((x) => x.json.type === config.attrs.uid)?.vals);
+  const name = takeOne(entry.attributes.find((x) => x.json.type === config.attrs.name)?.vals);
 
   if (!identityId || !name) {
     return undefined;

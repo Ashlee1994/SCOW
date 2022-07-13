@@ -4,6 +4,7 @@ import addFormats from "ajv-formats";
 
 export const createAjv = () => addFormats(new Ajv({
   useDefaults: true,
+  discriminator: true,
 }), [
   "date-time",
   "time",
