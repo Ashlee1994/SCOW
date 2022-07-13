@@ -26,7 +26,7 @@ it("creates user and group", async () => {
     password: "12#",
   };
 
-  const ldapConfig = AuthConfig.ldap;
+  const ldapConfig = AuthConfig.ldap!;
 
   const userDn = `${ldapConfig.attrs.uid}=${user.identityId},${ldapConfig.addUserBase}`;
   const groupDn = `${ldapConfig.attrs.groupUserId}=${user.identityId},${ldapConfig.addGroupBase}`;

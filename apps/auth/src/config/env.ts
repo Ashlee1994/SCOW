@@ -11,6 +11,9 @@ export const config = envConfig({
     default: "info",
     desc: "日志等级",
   }),
+
+  AUTH_TYPE: str({ desc: "认证类型。会覆写配置文件中的type", default: undefined }),
+
   TEST_USERS: str({ desc: "测试用户，如果这些用户登录，将其ID改为另一个ID。格式：原用户ID=新用户ID,原用户ID=新用户ID。", default: "" }),
 
   FOOTER_TEXTS: str({ desc: "根据域名（从referer判断）不同，显示在footer上的文本。格式：域名=文本,域名=文本", default: "" }),

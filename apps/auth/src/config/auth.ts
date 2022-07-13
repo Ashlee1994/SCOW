@@ -1,13 +1,6 @@
 import { getConfigFromFile } from "@scow/config";
 import { Static, Type } from "@sinclair/typebox";
 
-const CommonConfigSchema = Type.Object({
-  redis: Type.Object({
-    url: Type.String({ description: "redis地址，用于存放token" }),
-  }),
-  tokenTimeoutSeconds: Type.Integer({ description: "token失效时间，单位秒", default: 3600 }),
-});
-
 export const LdapConfigSchema = Type.Object({
   url: Type.String({ description: "LDAP服务器地址" }),
   searchBase: Type.String({ description: "LDAP用户搜索base。认证类型为ldap必填" }),
@@ -47,19 +40,14 @@ export const LdapConfigSchema = Type.Object({
 
 export type LdapConfigType = Static<typeof LdapConfigSchema>;
 
-export const AuthConfigSchema = {
-  type: "object",
-  discriminator: { propertyName: "type" },
-  required: ["type"],
-  ...Type.Strict(Type.Union([
-    Type.Intersect([CommonConfigSchema, Type.Object({
-      type: Type.Literal("ldap", { description: "指定为使用LDAP认证模式" }),
-      ldap: LdapConfigSchema,
-    })]),
-  ])),
-};
-
-console.log(JSON.stringify(AuthConfigSchema));
+export const AuthConfigSchema = Type.Object({
+  redis: Type.Object({
+    url: Type.String({ description: "redis地址，用于存放token" }),
+  }),
+  tokenTimeoutSeconds: Type.Integer({ description: "token失效时间，单位秒", default: 3600 }),
+  type: Type.Enum({ ldap: "ldap" }, { description: "认证类型" }),
+  ldap: Type.Optional(LdapConfigSchema),
+});
 
 // export const AuthConfigSchema = Type.Unsafe<Static<typeof InnerAuthConfigSchema>>({
 //   ...InnerAuthConfigSchema,

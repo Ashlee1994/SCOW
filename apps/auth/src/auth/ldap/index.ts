@@ -13,6 +13,7 @@ export const createLdapAuthProvider = (f: FastifyInstance) => {
 
 
   if (AuthConfig.type !== "ldap") { throw new Error("auth type is not ldap"); }
+  if (!AuthConfig.ldap) { throw new Error("auth type is ldap but config.ldap is not set");}
 
   const ldapConfig = AuthConfig.ldap;
 
@@ -52,7 +53,7 @@ export const createLdapAuthProvider = (f: FastifyInstance) => {
         });
     },
     createUser: async (info, req) => {
-      const id = info.id + ldapConfig.addUserBase;
+      const id = info.id + ldapConfig.addUidStart;
 
       await useLdap(req.log, ldapConfig, { dn: ldapConfig.bindDn, password: ldapConfig.bindPassword })(
         async (client) => {
