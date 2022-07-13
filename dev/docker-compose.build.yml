@@ -52,11 +52,11 @@ services:
       context: ..
       dockerfile: dockerfiles/Dockerfile.job-server-slurm
 
-  auth:
-    image: $IMAGE_BASE/auth:$TAG
+  auth-ldap:
+    image: $IMAGE_BASE/auth-ldap:$TAG
     build:
       context: ..
-      dockerfile: dockerfiles/Dockerfile.auth
+      dockerfile: dockerfiles/Dockerfile.auth-ldap
 
   clusterops-slurm:
     image: $IMAGE_BASE/clusterops-slurm:$TAG

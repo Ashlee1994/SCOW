@@ -80,7 +80,7 @@ LDAP认证系统将认证信息存放在redis中，所以在部署认证系统�
 
 ```yaml title=docker-compose.yml
   auth:
-    image: %CR_URL%/auth
+    image: %CR_URL%/auth-ldap
     restart: unless-stopped
     environment:
       # TODO 增加配置

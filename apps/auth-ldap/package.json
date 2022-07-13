@@ -1,5 +1,5 @@
 {
-  "name": "@scow/auth",
+  "name": "@scow/auth-ldap",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
